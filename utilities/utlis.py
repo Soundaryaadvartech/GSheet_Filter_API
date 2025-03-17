@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import pymysql
 import numpy as np
 from datetime import datetime
-import time 
+import datetime 
 import json
 from sqlalchemy import func
 from utilities.filter import filter_data
@@ -176,6 +176,9 @@ def agg_grp(db, models, business, filter_dict, data_dict, groupby_dict):  # Filt
     grouped_df = df1.groupby(group_columns).agg(agg_dict)
 
     grouped_df = grouped_df.reset_index()
+
+    if "launch_date" in grouped_df.columns.tolist():
+        grouped_df["launch_date"] = grouped_df["launch_date"].dt.strftime('%Y-%m-%d')
 
     return grouped_df
 
