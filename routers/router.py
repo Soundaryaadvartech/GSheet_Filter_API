@@ -1,13 +1,15 @@
 import traceback
+import io
 import json
 from typing import Optional
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from sqlalchemy import distinct
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from database.database import get_db
 from utilities.utlis import agg_grp
 from utilities.generic_utils import get_dynamic_db, get_models
+from utilities.filter_data import get_filter_data
 from pydantic import BaseModel
 import asyncio
 from pandas import DataFrame
@@ -44,7 +46,28 @@ async def inventory_summary(business: str, filter_request: FilterDataRequest, db
             content={"message": "Something went wrong", "error": str(e)}
         )
 
-    
 
-    
+@router.post("/get_filter_data")
+async def get_table(business: str, db: Session = Depends(get_dynamic_db)):
+    try:
+        print(f"Fetching filter data for business: {business}")  # Log business name
+        models = get_models(business)
+        print(f"Using models: {models}")  # Log models
+        filter_data = await run_in_thread(get_filter_data, db, models, business)
 
+        if filter_data.empty:  
+            print("No data found!")  # Log empty response
+            return JSONResponse(status_code=204, content={"message": "No data available"})
+
+        print("Data fetched successfully!")  # Log success
+
+        csv_buffer = io.StringIO()
+        filter_data.to_csv(csv_buffer, index=False)
+        csv_buffer.seek(0)
+
+        return StreamingResponse(csv_buffer, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=filter_data.csv"})
+
+    except Exception as e:
+        print(f"Error occurred: {e}")  # Log errors
+        traceback.print_exc()
+        return JSONResponse(status_code=500, content={"message": "Something went wrong"})
