@@ -35,9 +35,15 @@ async def inventory_summary(business: str, filter_request: FilterDataRequest, db
             filter_request.data_dict,  # Data aggregation methods
             filter_request.groupby_dict)  # Group-by conditions
 
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content = json.loads(summary_df.to_json(orient="records"))
+         # Convert DataFrame to CSV and stream it
+        stream = io.StringIO()
+        summary_df.to_csv(stream, index=False)
+        stream.seek(0)
+
+        return StreamingResponse(
+            stream, 
+            media_type="text/csv", 
+            headers={"Content-Disposition": f"attachment; filename={business}_inventory_summary.csv"}
         )
     except Exception as e:
         traceback.print_exc()
