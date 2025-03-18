@@ -96,30 +96,36 @@ def process_prathiksham(t1):
     return t1
 
 def process_zing(t1):
-    t1['Color'] = t1['Color'].apply(lambda x: ', '.join(sorted(str(item).strip() for item in x.split(',') if item.strip() != '')))
-    t1['Fit'] = t1['Fit'].apply(lambda x: ', '.join(sorted(str(item).strip() for item in x.split(',') if item.strip() != '')))
-    t1['Neck'] = t1['Neck'].apply(lambda x: ', '.join(sorted(str(item).strip() for item in x.split(',') if item.strip() != '')))
-    t1['Occasion'] = t1['Occasion'].apply(lambda x: ', '.join(sorted(str(item).strip() for item in x.split(',') if item.strip() != '')))
-    t1['Print'] = t1['Print'].apply(lambda x: ', '.join(sorted(str(item).strip() for item in x.split(',') if item.strip() != '')))
+    def safe_split(x):
+        if pd.isna(x):  # Check if value is NaN or None
+            return ''
+        return ', '.join(sorted(str(item).strip() for item in str(x).split(',') if item.strip()))
+    
+    t1['Colour'] = t1['Colour'].apply(safe_split)
+    t1['Fit'] = t1['Fit'].apply(safe_split)
+    t1['Neck'] = t1['Neck'].apply(safe_split)
+    t1['Occasion'] = t1['Occasion'].apply(safe_split)
+    t1['Print'] = t1['Print'].apply(safe_split)
+    t1['print_type'] = t1['print_type'].apply(safe_split)
+    
     sleeve_dict = {
-    'Three-Quarter Sleeves': 'Three-Quarter Sleeves',
-    'Three Quarter Sleeves': 'Three-Quarter Sleeves',
-    'Three Quarters Sleeves': 'Three-Quarter Sleeves',
-    'Three Quarter Sleeve': 'Three-Quarter Sleeves',
-    'Sleeveless': 'Sleeveless',
-    'Elbow Sleeves': 'Elbow Sleeves',
-    'Elbow Sleeve': 'Elbow Sleeves',
-    'Half-Sleeve': 'Half Sleeve',
-    'Half Sleeve': 'Half Sleeve',
-    'Full Sleeves': 'Full Sleeves',
-    'Full Sleeve': 'Full Sleeves',
-    'Short Sleeves': 'Short Sleeves',
-    'Short Sleeve': 'Short Sleeves',
-    'Short': 'Short Sleeves',
-    'Sleeveless': 'Sleeveless'
-        }
+        'Three-Quarter Sleeves': 'Three-Quarter Sleeves',
+        'Three Quarter Sleeves': 'Three-Quarter Sleeves',
+        'Three Quarters Sleeves': 'Three-Quarter Sleeves',
+        'Three Quarter Sleeve': 'Three-Quarter Sleeves',
+        'Sleeveless': 'Sleeveless',
+        'Elbow Sleeves': 'Elbow Sleeves',
+        'Elbow Sleeve': 'Elbow Sleeves',
+        'Half-Sleeve': 'Half Sleeve',
+        'Half Sleeve': 'Half Sleeve',
+        'Full Sleeves': 'Full Sleeves',
+        'Full Sleeve': 'Full Sleeves',
+        'Short Sleeves': 'Short Sleeves',
+        'Short Sleeve': 'Short Sleeves',
+        'Short': 'Short Sleeves',
+        'Sleeveless': 'Sleeveless'
+    }
     t1["Sleeve"] = t1["Sleeve"].replace(sleeve_dict)
-    t1['print_type'] = t1['print_type'].apply(lambda x: ', '.join(sorted(str(item).strip() for item in x.split(',') if item.strip() != '')))
     
     return t1
 
