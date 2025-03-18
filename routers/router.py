@@ -1,18 +1,20 @@
 import traceback
-import io
 import json
 from typing import Optional
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from sqlalchemy import distinct
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 from database.database import get_db
 from utilities.utlis import agg_grp
 from utilities.generic_utils import get_dynamic_db, get_models
-from utilities.filter_data import get_filter_data
 from pydantic import BaseModel
 import asyncio
 from pandas import DataFrame
+from io import StringIO
+from fastapi.responses import StreamingResponse
+from utilities.filtered_data import get_filter_data
+from utilities.columns_to_choose import get_column_names
 
 router = APIRouter()
 
@@ -35,23 +37,18 @@ async def inventory_summary(business: str, filter_request: FilterDataRequest, db
             filter_request.data_dict,  # Data aggregation methods
             filter_request.groupby_dict)  # Group-by conditions
 
-         # Convert DataFrame to CSV and stream it
-        stream = io.StringIO()
-        summary_df.to_csv(stream, index=False)
-        stream.seek(0)
+        
+        csv_buffer = StringIO()
+        summary_df.to_csv(csv_buffer, index=False)
+        csv_buffer.seek(0)
 
-        return StreamingResponse(
-            stream, 
-            media_type="text/csv", 
-            headers={"Content-Disposition": f"attachment; filename={business}_inventory_summary.csv"}
-        )
+        return StreamingResponse(csv_buffer, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=inventory_summary.csv"})
     except Exception as e:
         traceback.print_exc()
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"message": "Something went wrong", "error": str(e)}
         )
-
 
 @router.post("/get_filter_data")
 async def get_table(business: str, db: Session = Depends(get_dynamic_db)):
@@ -67,7 +64,7 @@ async def get_table(business: str, db: Session = Depends(get_dynamic_db)):
 
         print("Data fetched successfully!")  # Log success
 
-        csv_buffer = io.StringIO()
+        csv_buffer = StringIO()
         filter_data.to_csv(csv_buffer, index=False)
         csv_buffer.seek(0)
 
@@ -77,3 +74,31 @@ async def get_table(business: str, db: Session = Depends(get_dynamic_db)):
         print(f"Error occurred: {e}")  # Log errors
         traceback.print_exc()
         return JSONResponse(status_code=500, content={"message": "Something went wrong"})
+    
+@router.post("/get_column_names")
+async def get_table(business: str, db: Session = Depends(get_dynamic_db)):
+    try:
+        print(f"Fetching filter data for business: {business}")  # Log business name
+        models = get_models(business)
+        print(f"Using models: {models}")  # Log models
+        column_name = await run_in_thread(get_column_names, db, models, business)
+
+        if column_name.empty:  
+            print("No data found!")  # Log empty response
+            return JSONResponse(status_code=204, content={"message": "No data available"})
+
+        print("Data fetched successfully!")  # Log success
+
+        csv_buffer = StringIO()
+        column_name.to_csv(csv_buffer, index=False)
+        csv_buffer.seek(0)
+
+        return StreamingResponse(csv_buffer, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=column_name.csv"})
+
+    except Exception as e:
+        print(f"Error occurred: {e}")  # Log errors
+        traceback.print_exc()
+        return JSONResponse(status_code=500, content={"message": "Something went wrong"})
+
+    
+

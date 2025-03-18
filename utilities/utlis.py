@@ -9,7 +9,7 @@ import datetime
 import json
 from sqlalchemy import func
 from utilities.filter import filter_data
-from utilities.data_clean import process_beelittle,process_prathiksham
+from utilities.data_clean import process_beelittle,process_prathiksham,process_zing
 from utilities.group import group_by_bee,group_by_dic_prathisham,group_by_dic_zing
 
 
@@ -58,6 +58,7 @@ def agg_grp(db, models, business, filter_dict, data_dict, groupby_dict):  # Filt
                     ).all()
         rows = [row._asdict() for row in t1]
         t1 = pd.DataFrame(rows)
+        t1 = process_zing(t1)
 
 
     else:
