@@ -128,8 +128,8 @@ def agg_grp(db, models, business, filter_dict, data_dict, groupby_dict):  # Filt
     
     def Columns_to_Choose(df,data_dict):
         print("df",df.info())
-        dimensions = data_dict.get("dimensions", [])
-        aggregations = data_dict.get("aggregations", [])
+        dimensions = data_dict.get("Dimension", [])
+        aggregations = data_dict.get("Aggregation", [])
         col_choose = dimensions + aggregations
         df1 = df[col_choose]  # Store selected columns in df1
         print(df1.info())
