@@ -45,7 +45,7 @@ group_by_bee = {
     "Item_Id": "min",
     "Item_Name": "nunique",
     "Item_Type": "nunique",
-    "Item_Code": "code",
+    "Item_Code": "count",
     "Sale_Price": "mean",
     "Sale_Discount": lambda x: (x != 0).sum(),
     "Current_Stock": "sum",

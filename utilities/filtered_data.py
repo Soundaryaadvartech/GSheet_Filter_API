@@ -19,6 +19,7 @@ def get_filter_data(db: Session, models, business: str):
         t1 = pd.DataFrame(rows)
         t1 = process_beelittle(t1)
         t1 = t1.drop(columns=["Item_Id","Item_Code","Sale_Price","Sale_Discount","Current_Stock","Pack_Size","Sale","brand_name","inventory_type","launch_date","quadrant","supplier_name","season","Print_Style_1","Print_Style_2","Print_Theme_1","Print_Theme_2","Print_Key_Motif_1","Print_Key_Motif_2","Print_Colour_1","Print_Colour_2","relist_date","restock_status","Weight","Width","Weave_Type","Filling","Width","Weight"])
+
     elif business == "prathiksham":
         t1 = db.query(models.Item.Item_Id,models.Item.Item_Name,models.Item.Item_Type,models.Item.Item_Code,
                     models.Item.Sale_Price,models.Item.Sale_Discount,models.Item.Current_Stock,

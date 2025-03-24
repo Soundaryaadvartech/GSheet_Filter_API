@@ -31,6 +31,7 @@ def agg_grp(db, models, business, filter_dict, data_dict, groupby_dict):  # Filt
         rows = [row._asdict() for row in t1]
         t1 = pd.DataFrame(rows)
         t1 = process_beelittle(t1)
+        
     elif business == "prathiksham":
         group_by_dic = group_by_dic_prathisham
         t1 = db.query(models.Item.Item_Id,models.Item.Item_Name,models.Item.Item_Type,models.Item.Item_Code,
@@ -78,6 +79,7 @@ def agg_grp(db, models, business, filter_dict, data_dict, groupby_dict):  # Filt
     
     def filter(db, models,t1, filter_dict,query3,query4):
         t1, query3, query4 = filter_data(db, models, t1, filter_dict, query3, query4)
+        print("t1",t1.columns)
         df = pd.merge(t1,t2,how="left",on="Item_Id")
 
         df["launch_date"]=df["launch_date"].fillna(df["First_Sold_Date"])
@@ -124,15 +126,16 @@ def agg_grp(db, models, business, filter_dict, data_dict, groupby_dict):  # Filt
         df["launch_date"] = df["launch_date"].replace(0, np.nan)
             
         df["launch_date"] = pd.to_datetime(df["launch_date"],errors='coerce')
+        print("df",df.columns)
         return df
     
     def Columns_to_Choose(df,data_dict):
-        print("df",df.info())
         dimensions = data_dict.get("Dimension", [])
         aggregations = data_dict.get("Aggregation", [])
         col_choose = dimensions + aggregations
         df1 = df[col_choose]  # Store selected columns in df1
-        print(df1.info())
+        
+    
         return df1
 
     def extract_groupby_agg(groupby_dict, df1):
@@ -167,10 +170,13 @@ def agg_grp(db, models, business, filter_dict, data_dict, groupby_dict):  # Filt
    
 
     df = filter(db, models,t1, filter_dict, query3, query4)
+    
 
     df1 = Columns_to_Choose(df,data_dict)
+    
 
     group_columns = extract_groupby_agg(groupby_dict, df1)
+    
 
     agg_dict = agg_col(df1,group_columns)
 

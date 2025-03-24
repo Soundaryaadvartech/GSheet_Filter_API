@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from sqlalchemy import distinct
 from fastapi.responses import JSONResponse
-from database.database import get_db
+from database.database import get_db,get_business_name
 from utilities.utlis import agg_grp
 from utilities.generic_utils import get_dynamic_db, get_models
 from pydantic import BaseModel
@@ -15,6 +15,7 @@ from io import StringIO
 from fastapi.responses import StreamingResponse
 from utilities.filtered_data import get_filter_data
 from utilities.columns_to_choose import get_column_names
+
 
 router = APIRouter()
 
@@ -29,7 +30,9 @@ async def run_in_thread(fn,*args):
 @router.post("/aggregation/")
 async def inventory_summary(business: str, filter_request: FilterDataRequest, db: Session = Depends(get_dynamic_db)):
     try:
+        
         models = get_models(business)
+        business = get_business_name(business)
         
         # Call the aggregation function and pass necessary arguments
         summary_df: DataFrame = await run_in_thread(agg_grp,db, models, business,
@@ -54,7 +57,9 @@ async def inventory_summary(business: str, filter_request: FilterDataRequest, db
 async def get_table(business: str, db: Session = Depends(get_dynamic_db)):
     try:
         print(f"Fetching filter data for business: {business}")  # Log business name
+        print(business)
         models = get_models(business)
+        business = get_business_name(business)
         print(f"Using models: {models}")  # Log models
         filter_data = await run_in_thread(get_filter_data, db, models, business)
 
@@ -79,8 +84,10 @@ async def get_table(business: str, db: Session = Depends(get_dynamic_db)):
 async def get_table(business: str, db: Session = Depends(get_dynamic_db)):
     try:
         print(f"Fetching filter data for business: {business}")  # Log business name
+        
         models = get_models(business)
         print(f"Using models: {models}")  # Log models
+        business = get_business_name(business)
         column_name = await run_in_thread(get_column_names, db, models, business)
 
         if column_name.empty:  
