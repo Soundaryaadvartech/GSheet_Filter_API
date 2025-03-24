@@ -1,7 +1,4 @@
 import pandas as pd
-import plotly.io as pio
-pio.renderers.default = "browser"
-import plotly.graph_objects as go
 import pymysql
 import numpy as np
 from datetime import datetime
